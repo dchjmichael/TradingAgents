@@ -24,3 +24,8 @@ rich
 questionary
 langchain_anthropic
 langchain-google-genai
+langchain-deepseek
+llama-index-core
+llama-index-embeddings-dashscope
+llama-index-readers-file
+docx2txt

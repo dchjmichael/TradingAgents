@@ -1,4 +1,7 @@
 from typing import Annotated, Dict
+
+from yfinance.scrapers.history import PriceHistory
+
 from .reddit_utils import fetch_top_from_category
 from .yfin_utils import *
 from .stockstats_utils import *
@@ -14,6 +17,23 @@ from tqdm import tqdm
 import yfinance as yf
 from openai import OpenAI
 from .config import get_config, set_config, DATA_DIR
+from curl_cffi import requests
+
+headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
+           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+           'accept-encoding': 'gzip, deflate, br, zstd',
+           'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
+           'cache-control': 'max-age=0',
+           'sec-ch-ua':'"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+           'sec-ch-ua-mobile':'?0',
+           'sec-ch-ua-platform': '"macOS"',
+           'sec-fetch-dest':'document',
+           'sec-fetch-mode':'navigate',
+           'sec-fetch-site':'none',
+           'sec-fetch-user':'?1',
+           'upgrade-insecure-requests':'1'
+           }
+yf_session = requests.Session(impersonate="chrome", headers=headers)
 
 
 def get_finnhub_news(
@@ -635,7 +655,10 @@ def get_YFin_data_online(
     datetime.strptime(end_date, "%Y-%m-%d")
 
     # Create ticker object
-    ticker = yf.Ticker(symbol.upper())
+    ticker = yf.Ticker(symbol.upper(), session = yf_session)
+    ticker._tz = "America/New_York"
+    ticker._price_history = PriceHistory(ticker._data, ticker.ticker, ticker._tz)
+
 
     # Fetch historical data for the specified date range
     data = ticker.history(start=start_date, end=end_date)
